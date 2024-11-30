@@ -19,10 +19,23 @@ func ConnectDB() {
 	}
 
 	log.Println("Running migrations...")
-	err = DB.AutoMigrate(&models.User{}, &models.Order{})
-	if err != nil {
-		log.Fatal("Failed to run migrations: ", err)
-	}
+	Migrate()
 
 	log.Println("Database connected and migrations completed.")
+}
+
+func Migrate() {
+	if err := DB.AutoMigrate(&models.User{}, &models.Order{}); err != nil {
+		log.Fatalf("Failed to run migrations: %v", err)
+	}
+
+	if DB.Migrator().HasColumn(&models.Order{}, "cod_fee") {
+		if err := DB.Migrator().RenameColumn(&models.Order{}, "cod_fee", "cash_on_delivery_fee"); err != nil {
+			log.Fatalf("Failed to rename column: %v", err)
+		}
+	}
+
+	if err := DB.AutoMigrate(&models.User{}, &models.Order{}); err != nil {
+		log.Fatalf("Failed to auto migrate: %v", err)
+	}
 }
