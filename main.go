@@ -13,6 +13,7 @@ func main() {
 	r := gin.Default()
 
 	routes.AuthRoutes(r)
+	routes.OrderRoutes(r)
 
 	r.Run(":8080")
 }

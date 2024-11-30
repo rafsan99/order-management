@@ -12,5 +12,6 @@ func OrderRoutes(r *gin.Engine) {
 	orders.Use(middlewares.AuthMiddleware)
 	{
 		orders.POST("", controllers.CreateOrder)
+		orders.GET("/all", controllers.OrdersList)
 	}
 }

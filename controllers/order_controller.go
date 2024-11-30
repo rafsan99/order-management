@@ -5,6 +5,7 @@ import (
 	"order-management/database"
 	"order-management/models"
 	"order-management/utils"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -119,4 +120,48 @@ func calculateDeliveryFee(city uint, weight float64) float64 {
 
 func calculateCODFee(amount float64) float64 {
 	return 0.01 * amount
+}
+
+func OrdersList(c *gin.Context) {
+	// transferStatus := c.DefaultQuery("transfer_status", "1") //not clear about transferStatus
+	// archive := c.DefaultQuery("archive", "0") //not clear about archive
+	limitStr := c.DefaultQuery("limit", "10")
+	pageStr := c.DefaultQuery("page", "1")
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit < 1 {
+		limit = 10
+	}
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	offset := (page - 1) * limit
+
+	userID := c.MustGet("userID").(uint)
+
+	var orders []models.Order
+	var total int64
+
+	query := database.DB.Where("user_id = ? ", userID)
+	query.Model(&models.Order{}).Count(&total)
+	query.Offset(offset).Limit(limit).Find(&orders)
+
+	response := gin.H{
+		"message": "Orders successfully fetched.",
+		"type":    "success",
+		"code":    200,
+		"data": gin.H{
+			"data":          orders,
+			"total":         total,
+			"current_page":  page,
+			"per_page":      limit,
+			"total_in_page": len(orders),
+			"last_page":     (int(total) + limit - 1) / limit,
+		},
+	}
+
+	c.JSON(http.StatusOK, response)
 }
