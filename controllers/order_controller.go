@@ -25,7 +25,7 @@ type CreateOrderInput struct {
 	ItemQuantity       uint    `json:"item_quantity" binding:"required"`
 	ItemWeight         float64 `json:"item_weight" binding:"required"`
 	AmountToCollect    float64 `json:"amount_to_collect" binding:"required"`
-	SpecialInstruction string  `json:"instruction"`
+	SpecialInstruction string  `json:"special_instruction"`
 	ItemDescription    string  `json:"item_description"`
 }
 
@@ -44,7 +44,7 @@ func CreateOrder(c *gin.Context) {
 	}
 
 	deliveryFee := calculateDeliveryFee(input.RecipientCity, input.ItemWeight)
-	codFee := calculateCODFee(input.AmountToCollect)
+	CashOnDeliveryFee := calCulateCashOnDeliveryFee(input.AmountToCollect)
 
 	order := models.Order{
 		UserID:             userID.(uint),
@@ -63,9 +63,9 @@ func CreateOrder(c *gin.Context) {
 		SpecialInstruction: input.SpecialInstruction,
 		ItemDescription:    input.ItemDescription,
 		AmountToCollect:    input.AmountToCollect,
-		CODFee:             codFee,
+		CashOnDeliveryFee:  CashOnDeliveryFee,
 		DeliveryFee:        deliveryFee,
-		TotalFee:           deliveryFee + codFee,
+		TotalFee:           deliveryFee + CashOnDeliveryFee,
 		OrderStatus:        "Pending",
 		OrderType:          "Delivery",
 		OrderConsignmentID: utils.GenerateConsignmentID(),
@@ -112,13 +112,13 @@ func calculateDeliveryFee(city uint, weight float64) float64 {
 		} else if weight <= 1 {
 			return baseDeliveryFee + 10
 		} else {
-			return baseDeliveryFee + 10 + ((weight - 1) * 15)
+			return baseDeliveryFee + 10 + ((weight - 1) * 15) //need to clarify
 		}
 	}
 	return baseDeliveryFee + ((weight - 1) * 15)
 }
 
-func calculateCODFee(amount float64) float64 {
+func calCulateCashOnDeliveryFee(amount float64) float64 {
 	return 0.01 * amount
 }
 
@@ -145,20 +145,41 @@ func OrdersList(c *gin.Context) {
 	var orders []models.Order
 	var total int64
 
-	query := database.DB.Where("user_id = ? ", userID)
+	query := database.DB.Where("user_id = ?", userID)
 	query.Model(&models.Order{}).Count(&total)
 	query.Offset(offset).Limit(limit).Find(&orders)
+
+	type OrderResponse struct {
+		models.Order
+		ItemType string `json:"item_type"`
+	}
+
+	orderResponses := make([]OrderResponse, len(orders))
+	for i, order := range orders {
+		var itemType string
+		switch order.ItemType {
+		case 1:
+			itemType = "Parcel"
+		case 2:
+			itemType = "Document"
+		}
+
+		orderResponses[i] = OrderResponse{
+			Order:    order,
+			ItemType: itemType,
+		}
+	}
 
 	response := gin.H{
 		"message": "Orders successfully fetched.",
 		"type":    "success",
 		"code":    200,
 		"data": gin.H{
-			"data":          orders,
+			"data":          orderResponses,
 			"total":         total,
 			"current_page":  page,
 			"per_page":      limit,
-			"total_in_page": len(orders),
+			"total_in_page": len(orderResponses),
 			"last_page":     (int(total) + limit - 1) / limit,
 		},
 	}

@@ -20,10 +20,10 @@ type Order struct {
 	ItemType           uint      `gorm:"not null" json:"item_type"`
 	ItemQuantity       uint      `gorm:"not null" json:"item_quantity"`
 	ItemWeight         float64   `gorm:"not null" json:"item_weight"`
-	SpecialInstruction string    `gorm:"" json:"instruction"`
+	SpecialInstruction string    `gorm:"column:special_instruction" json:"instruction"`
 	ItemDescription    string    `gorm:"" json:"item_description"`
 	AmountToCollect    float64   `gorm:"not null" json:"order_amount"`
-	CODFee             float64   `gorm:"not null" json:"cod_fee"`
+	CashOnDeliveryFee  float64   `gorm:"not null" json:"cash_on_delivery_fee"`
 	DeliveryFee        float64   `gorm:"not null" json:"delivery_fee"`
 	PromoDiscount      float64   `gorm:"default:0" json:"promo_discount"`
 	Discount           float64   `gorm:"default:0" json:"discount"`
