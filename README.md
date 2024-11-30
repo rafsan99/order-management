@@ -24,7 +24,7 @@ cURL For Order Creation API
 ```
 curl --location 'http://localhost:8080/api/v1/orders' \
 --header 'Content-Type: application/json' \
---header 'Authorization: Bearer <Token>' \
+--header 'Authorization: Bearer {{TOKEN}}' \
 --data '{
     "store_id": 131172,
     "merchant_order_id": "gg",
@@ -48,12 +48,12 @@ cURL For Fetching Orders API
 
 ```
 curl --location 'http://localhost:8080/api/v1/orders/all?limit=10&page=1' \
---header 'Authorization: Bearer <Token>' \
+--header 'Authorization: Bearer {{TOKEN}}' \
 ```
 
 cURL For Order Cancelling API
 
 ```
 curl --location --request PUT 'http://localhost:8080/api/v1/orders/17329744464O8HIH/cancel' \
---header 'Authorization: Bearer <Token>' \
+--header 'Authorization: Bearer {{TOKEN}}' \
 ```
