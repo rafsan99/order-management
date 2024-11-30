@@ -13,5 +13,6 @@ func OrderRoutes(r *gin.Engine) {
 	{
 		orders.POST("", controllers.CreateOrder)
 		orders.GET("/all", controllers.OrdersList)
+		orders.PUT("/:consignment_id/cancel", controllers.CancelOrder)
 	}
 }

@@ -165,3 +165,45 @@ func OrdersList(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
+
+func CancelOrder(c *gin.Context) {
+	consignmentID := c.Param("consignment_id")
+	if consignmentID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Invalid request",
+			"type":    "error",
+			"code":    400,
+		})
+		return
+	}
+
+	userID := c.MustGet("userID").(uint)
+
+	var order models.Order
+	result := database.DB.Where("order_consignment_id = ? AND user_id = ?", consignmentID, userID).First(&order)
+
+	if result.Error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "Please contact cx to cancel order",
+			"type":    "error",
+			"code":    400,
+		})
+		return
+	}
+
+	order.OrderStatus = "Cancelled"
+	if err := database.DB.Save(&order).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to cancel order",
+			"type":    "error",
+			"code":    500,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Order Cancelled Successfully",
+		"type":    "success",
+		"code":    200,
+	})
+}
